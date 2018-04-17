@@ -36,7 +36,7 @@ else ifeq ($(UNAME_SYS), FreeBSD)
 else ifeq ($(UNAME_SYS), Linux)
 	CC ?= gcc
 	CFLAGS ?= -O3 -std=c11 -finline-functions -Wall -Wmissing-prototypes
-	CXXFLAGS ?= -O3 -std=c++11 -finline-functions -Wall -Wextra -Werror -Wno-missing-field-initializers -fno-exceptions -fno-rtti 
+	CXXFLAGS ?= -O3 -std=c++11 -finline-functions -Wall
 endif
 
 CFLAGS += -fPIC -I $(ERTS_INCLUDE_DIR) -I $(ERL_INTERFACE_INCLUDE_DIR) -I $(LIB_BACNET_INCLUDE_DIR) -I $(LIB_BACNET_PORT_INCLUDE_DIR)

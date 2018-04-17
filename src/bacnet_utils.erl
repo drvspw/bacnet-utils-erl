@@ -21,17 +21,54 @@
 
 %% API exports
 -export([
-	 repeat/2
+	 build_write_property_request/2,
+	 build_read_property_request/0
 ]).
 
 -on_load(init/0).
 
 -define(APPNAME, ?MODULE).
 -define(LIBNAME, ?MODULE).
+
 %%====================================================================
 %% API functions - NIFS
 %%====================================================================
-repeat(_, _) ->
+
+%% @doc build_write_property_request/2 builds a bacnet write property request
+%%
+%% Generates a write property request where the property value is a concatenation
+%% of  `Id' and `Tag'.
+%% @end
+-spec build_write_property_request(Id, Tag) -> WritePropertyRequest
+    when
+      Id :: iodata(),
+      Tag :: binary(),
+      WritePropertyRequest :: binary().
+build_write_property_request(Id, Tag) when is_binary(Id), is_binary(Tag) ->
+    %% TODO: Both Id and tag has to be 8 byte binaries
+    build_write_property_request_nif(Id, Tag).
+
+%% @doc build_read_property_request/0 builds a bacnet read property request
+%%
+%% Generates a read property request where the property value read is a 
+%% concatenation of  `Id' and `Tag'.
+%% @end
+-spec build_read_property_request() -> ReadPropertyRequest
+    when
+      ReadPropertyRequest :: binary().
+build_read_property_request() ->
+    %% TODO: Both Id and tag has to be 8 byte binaries
+    build_read_property_request_nif().
+    
+
+
+%%====================================================================
+%% NIFS
+%%====================================================================
+build_write_property_request_nif(_,_) ->
+    not_loaded(?LINE).
+
+build_read_property_request_nif() ->
     not_loaded(?LINE).
 
 %%====================================================================
