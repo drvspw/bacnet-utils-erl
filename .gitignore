@@ -1,0 +1,92 @@
+#
+# Ignore C artifacts
+#
+**/*.o
+**/*.so
+**/*.so.*
+
+#
+# Ignore files for Maven, Eclipse projects
+#
+**/target/
+**/.settings/
+**/.project
+**/.classpath
+**/.tpignore
+target/
+.settings/
+.project
+.classpath
+.tpignore
+
+#
+# Ignore grunt project files
+#
+**/node_modules/
+node_modules/
+
+#
+# Ignore files for Gradle
+#
+**/build/
+**/.gradle/
+**/.gradle-ruby/
+build/
+.gradle/
+.gradle-ruby/
+
+#
+# Ignore files for intelliJ
+#
+**/.idea/
+.idea/
+
+#
+# Ignore .svn
+#
+**/.svn/
+.svn/
+
+#
+# Ignore bin
+#
+**/bin/
+bin/
+
+#
+#
+# Ignore .gitignore files
+**/.gitignore
+.gitignore
+
+#
+# Ignore Gemfile.lock
+#
+**/Gemfile.lock
+Gemfile.lock
+
+#
+# Ignore beam files
+#
+**/rebar.lock
+**/*.beam
+*.beam
+**/deps/
+**/ebin/
+**/_rel/
+**/_build/
+**/.rebar
+**/.DS_Store
+**/priv/build_id
+
+#
+# Ignore ruby files
+#
+**/.bundle/
+**/.yardoc
+**/_yardoc/
+**/coverage/
+**/doc/
+**/pkg/
+**/spec/reports/
+**/tmp/
