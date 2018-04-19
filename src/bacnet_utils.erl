@@ -22,7 +22,12 @@
 %% API exports
 -export([
 	 build_write_property_request/2,
-	 build_read_property_request/0
+	 build_read_property_request/0,
+
+	 get_apdu_from_message/1,
+	 get_pdu_type/1,
+
+	 get_value_from_complex_ack/1
 ]).
 
 -on_load(init/0).
@@ -41,11 +46,10 @@
 %% @end
 -spec build_write_property_request(Id, Tag) -> WritePropertyRequest
     when
-      Id :: iodata(),
-      Tag :: binary(),
+      Id :: integer(),
+      Tag :: integer(),
       WritePropertyRequest :: binary().
-build_write_property_request(Id, Tag) when is_binary(Id), is_binary(Tag) ->
-    %% TODO: Both Id and tag has to be 8 byte binaries
+build_write_property_request(Id, Tag) ->
     build_write_property_request_nif(Id, Tag).
 
 %% @doc build_read_property_request/0 builds a bacnet read property request
@@ -57,8 +61,17 @@ build_write_property_request(Id, Tag) when is_binary(Id), is_binary(Tag) ->
     when
       ReadPropertyRequest :: binary().
 build_read_property_request() ->
-    %% TODO: Both Id and tag has to be 8 byte binaries
     build_read_property_request_nif().
+
+
+get_apdu_from_message(Msg) ->
+    get_apdu_from_message_nif(Msg).
+
+get_pdu_type(Apdu) ->
+    get_pdu_type_nif(Apdu).
+
+get_value_from_complex_ack(Apdu) ->
+    get_value_from_complex_ack_nif(Apdu).
     
 
 
@@ -69,6 +82,15 @@ build_write_property_request_nif(_,_) ->
     not_loaded(?LINE).
 
 build_read_property_request_nif() ->
+    not_loaded(?LINE).
+
+get_apdu_from_message_nif(_) ->
+    not_loaded(?LINE).
+
+get_pdu_type_nif(_) ->
+    not_loaded(?LINE).
+
+get_value_from_complex_ack_nif(_) ->
     not_loaded(?LINE).
 
 %%====================================================================

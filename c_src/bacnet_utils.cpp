@@ -25,9 +25,6 @@ namespace {
 
   uint16_t decode_npdu(uint8_t* npdu_in, uint16_t npdu_len, uint8_t** apdu);
 
-  void build_bacnet_payload(BACNET_APPLICATION_DATA_VALUE& out, uint64_t test_id, uint64_t next_tag_);
-
-
   BACNET_OBJECT_TYPE object_type_k = OBJECT_OCTETSTRING_VALUE;
   uint32_t object_instance_k = 0;
   BACNET_PROPERTY_ID object_property_k = PROP_PRESENT_VALUE;
@@ -165,6 +162,13 @@ uint8_t* prepare_bacnet_octet_string_payload(BACNET_APPLICATION_DATA_VALUE& out,
   return out.type.Octet_String.value;
 }
 
+  void build_bacnet_payload(BACNET_APPLICATION_DATA_VALUE& out, uint64_t test_id, uint64_t next_tag_)
+  {
+    uint8_t* payload = prepare_bacnet_octet_string_payload(out, sizeof(test_id) + sizeof(next_tag_));
+    std::memcpy(payload, &test_id, sizeof(test_id));
+    std::memcpy(payload + sizeof(test_id), &next_tag_, sizeof(next_tag_));
+  }
+
 namespace {
   uint8_t build_bvll(uint8_t* buffer, uint8_t * pdu, unsigned pdu_len)
   {
@@ -227,12 +231,5 @@ namespace {
     *apdu = &npdu_in[apdu_offset];
         
     return npdu_len - apdu_offset;
-  }
-
-  void build_bacnet_payload(BACNET_APPLICATION_DATA_VALUE& out, uint64_t test_id, uint64_t next_tag_)
-  {
-    uint8_t* payload = prepare_bacnet_octet_string_payload(out, sizeof(test_id) + sizeof(next_tag_));
-    std::memcpy(payload, &test_id, sizeof(test_id));
-    std::memcpy(payload + sizeof(test_id), &next_tag_, sizeof(next_tag_));
   }
 }   // anonymous namespace

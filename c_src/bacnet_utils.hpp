@@ -20,4 +20,6 @@ bool get_value_from_complex_ack(uint8_t* apdu, uint16_t apdu_len, BACNET_APPLICA
 
 uint8_t* prepare_bacnet_octet_string_payload(BACNET_APPLICATION_DATA_VALUE& out, std::size_t size);
 
+void build_bacnet_payload(BACNET_APPLICATION_DATA_VALUE& out, uint64_t test_id, uint64_t next_tag_);
+
 #endif
