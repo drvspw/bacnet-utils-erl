@@ -63,17 +63,17 @@ COMPILE_C = $(c_verbose) $(CC) $(CFLAGS) $(CPPFLAGS) -c
 COMPILE_CPP = $(cpp_verbose) $(CXX) $(CXXFLAGS) $(CPPFLAGS) -c
 
 .DEFAULT_GOAL := $(C_SRC_OUTPUT)
-.PHONY: download
+.PHONY: deps
 
 # Download libbacnet
-download:
+deps:
 ifeq (,$(wildcard $(LIB_BACNET_DIR)/$(LIB_BACNET_PKG)))
 	@mkdir -p $(LIB_BACNET_DIR)
 	curl -sL $(LIB_BACNET_DL) -o $(LIB_BACNET_DIR)/$(LIB_BACNET_PKG)
 	tar -zxvf $(LIB_BACNET_DIR)/$(LIB_BACNET_PKG) -C $(LIB_BACNET_DIR)
 endif
 
-$(C_SRC_OUTPUT): $(OBJECTS)
+$(C_SRC_OUTPUT): deps $(OBJECTS)
 	@mkdir -p $(BASEDIR)/priv/
 	$(link_verbose) $(CC) $(OBJECTS) $(LDFLAGS) $(LDLIBS) -o $(C_SRC_OUTPUT)
 
@@ -90,4 +90,4 @@ $(C_SRC_OUTPUT): $(OBJECTS)
 	$(COMPILE_CPP) $(OUTPUT_OPTION) $<
 
 clean:
-	@rm -f $(C_SRC_OUTPUT) $(OBJECTS)
+	@rm -rf $(C_SRC_OUTPUT) $(OBJECTS) $(LIB_BACNET_DIR)
