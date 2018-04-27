@@ -15,7 +15,7 @@ C_SRC_DIR = $(CURDIR)
 C_SRC_OUTPUT ?= $(CURDIR)/../priv/$(PROJECT).so
 
 LIB_BACNET_PKG ?= libbacnet-0.8.5.tar.gz
-LIB_BACNET_DL ?= http://dl.bintray.com/drvspw/bacnet/$(LIB_BACNET_PKG)
+LIB_BACNET_DL ?= http://dl.bintray.com/xaptum-eng/tar-bundles/$(LIB_BACNET_PKG)
 LIB_BACNET_DIR ?= $(CURDIR)/../_build/bacnet
 LIB_BACNET_PORT_INCLUDE_DIR ?= $(LIB_BACNET_DIR)/ports/linux
 LIB_BACNET_INCLUDE_DIR ?= $(LIB_BACNET_DIR)/include
