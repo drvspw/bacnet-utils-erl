@@ -14,12 +14,8 @@ ERL_INTERFACE_LIB_DIR ?= $(shell erl -noshell -s init stop -eval "io:format(\"~s
 C_SRC_DIR = $(CURDIR)
 C_SRC_OUTPUT ?= $(CURDIR)/../priv/$(PROJECT).so
 
-LIB_BACNET_PKG ?= libbacnet-0.8.5.tar.gz
-LIB_BACNET_DL ?= http://dl.bintray.com/xaptum-eng/tar-bundles/$(LIB_BACNET_PKG)
-LIB_BACNET_DIR ?= $(CURDIR)/../_build/bacnet
-LIB_BACNET_PORT_INCLUDE_DIR ?= $(LIB_BACNET_DIR)/ports/linux
-LIB_BACNET_INCLUDE_DIR ?= $(LIB_BACNET_DIR)/include
-LIB_BACNET_LIB_DIR ?= $(LIB_BACNET_DIR)/lib
+BACNET_INCLUDE_DIR ?= /usr/include/bacnet
+BACNET_PORTS_INCLUDE_DIR ?= $(BACNET_INCLUDE_DIR)/ports/linux
 
 # System type and C compiler/flags.
 
@@ -39,10 +35,10 @@ else ifeq ($(UNAME_SYS), Linux)
 	CXXFLAGS ?= -O3 -std=c++11 -finline-functions -Wall
 endif
 
-CFLAGS += -fPIC -I $(ERTS_INCLUDE_DIR) -I $(ERL_INTERFACE_INCLUDE_DIR) -I $(LIB_BACNET_INCLUDE_DIR) -I $(LIB_BACNET_PORT_INCLUDE_DIR)
-CXXFLAGS += -fPIC -I $(ERTS_INCLUDE_DIR) -I $(ERL_INTERFACE_INCLUDE_DIR) -I $(LIB_BACNET_INCLUDE_DIR)  -I $(LIB_BACNET_PORT_INCLUDE_DIR)
+CFLAGS += -fPIC -I $(ERTS_INCLUDE_DIR) -I $(ERL_INTERFACE_INCLUDE_DIR) -I $(BACNET_INCLUDE_DIR) -I $(BACNET_PORTS_INCLUDE_DIR)
+CXXFLAGS += -fPIC -I $(ERTS_INCLUDE_DIR) -I $(ERL_INTERFACE_INCLUDE_DIR) -I $(BACNET_INCLUDE_DIR)  -I $(BACNET_PORTS_INCLUDE_DIR)
 
-LDLIBS += -L $(ERL_INTERFACE_LIB_DIR) -lerl_interface -lei -L $(LIB_BACNET_LIB_DIR) -lbacnet
+LDLIBS += -L $(ERL_INTERFACE_LIB_DIR) -lerl_interface -lei -lbacnet
 LDFLAGS += -shared
 
 # Verbosity.
@@ -63,17 +59,8 @@ COMPILE_C = $(c_verbose) $(CC) $(CFLAGS) $(CPPFLAGS) -c
 COMPILE_CPP = $(cpp_verbose) $(CXX) $(CXXFLAGS) $(CPPFLAGS) -c
 
 .DEFAULT_GOAL := $(C_SRC_OUTPUT)
-.PHONY: deps
 
-# Download libbacnet
-deps:
-ifeq (,$(wildcard $(LIB_BACNET_DIR)/$(LIB_BACNET_PKG)))
-	@mkdir -p $(LIB_BACNET_DIR)
-	curl -sL $(LIB_BACNET_DL) -o $(LIB_BACNET_DIR)/$(LIB_BACNET_PKG)
-	tar -zxvf $(LIB_BACNET_DIR)/$(LIB_BACNET_PKG) -C $(LIB_BACNET_DIR)
-endif
-
-$(C_SRC_OUTPUT): deps $(OBJECTS)
+$(C_SRC_OUTPUT): $(OBJECTS)
 	@mkdir -p $(BASEDIR)/priv/
 	$(link_verbose) $(CC) $(OBJECTS) $(LDFLAGS) $(LDLIBS) -o $(C_SRC_OUTPUT)
 
