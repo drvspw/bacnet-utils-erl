@@ -34,12 +34,17 @@
 
 
 -export([
-	 write_property_test/1, 
-	 read_property_test/1,
+	 write_property_request_test/1, 
+	 read_property_request_test/1,
+
+	 read_analog_property_request_test/1,
+
 	 get_apdu_from_message_test/1,
 	 get_pdu_type_simple_ack_test/1,
 	 get_pdu_type_complex_ack_test/1,
-	 get_value_from_complex_ack_test/1
+	 get_value_from_complex_ack_test/1,
+
+	 get_analog_value_from_complex_ack_test/1
 	]).
 
 -define(PASS(Test), ct:print("\e[1;1m ~p \e[0m\e[32m[PASS] \e[0m",[Test])).
@@ -55,9 +60,9 @@ groups() ->
     [
      {?BACNET_TEST_GROUP, 
       [parallel], 
-      [read_property_test, write_property_test, 
+      [read_property_request_test, write_property_request_test, read_analog_property_request_test,
        get_apdu_from_message_test, get_pdu_type_simple_ack_test,
-       get_pdu_type_complex_ack_test, get_value_from_complex_ack_test
+       get_pdu_type_complex_ack_test, get_value_from_complex_ack_test, get_analog_value_from_complex_ack_test
       ]
      }
     ].
@@ -79,16 +84,23 @@ end_per_group(?BACNET_TEST_GROUP, _Config) ->
 %%===============================================
 %% Test Functions
 %%===============================================
-write_property_test(_Config) ->
+write_property_request_test(_Config) ->
     Id = 1, Tag = 2,
     Wp = <<129,10,0,39,1,4,0,5,0,15,12,11,192,0,0,25,85,62,101,16,1,0,0,0,0,0,0,0,2,0,0,0,0,0,0,0,63,73,1>>,
     {ok, Wp} = bacnet_utils:build_write_property_request(Id, Tag),
     ?PASS('write_property_test').
 
-read_property_test(_Config) ->
+read_property_request_test(_Config) ->
     Rp = <<129,10,0,17,1,4,0,5,0,12,12,11,192,0,0,25,85>>,
     {ok, Rp} = bacnet_utils:build_read_property_request(),
     ?PASS(read_property_test).
+
+read_analog_property_request_test(_Config) ->
+    _Rp = <<129, 10, 0, 17, 1, 4,0,5,1,12,12,0,64,0,1,25,85>>,
+    
+    %% TODO: Implement analog property request
+    %%{ok, Rp} = bacnet_utils:build_read_analog_property_request(),
+    ?PASS(read_analog_property_request_test).
 
 get_apdu_from_message_test(Config) ->
     SimpleMsg = ?config(bacnet_simple_ack_msg, Config),
@@ -114,4 +126,24 @@ get_value_from_complex_ack_test(Config) ->
     ComplexAckMsg = ?config(bacnet_complex_ack_msg, Config),
     {ok, ComplexApdu} = bacnet_utils:get_apdu_from_message(ComplexAckMsg),
     {ok, 10, 99} = bacnet_utils:get_value_from_complex_ack(ComplexApdu).
+
+get_analog_value_from_complex_ack_test(_Config) ->
+    %% Analog property value is 0.000000
+    0.0 = floating_point_value_from_ack(<<129,10,0,23,1,0,48,1,12,12,0,64,0,1,25,85,62,68,0,0,0,0,63>>),
+    
+    %% Analog Property values is 100.000000
+    100.00 = floating_point_value_from_ack(<<129,10,0,23,1,0,48,1,12,12,0,64,0,1,25,85,62,68,66,200,0,0,63>>),
+    
+    %% Analog Property value is 34.000000
+    34.0 = floating_point_value_from_ack(<<129,10,0,23,1,0,48,1,12,12,0,64,0,1,25,85,62,68,66,8,0,0,63>>).
+
+
+%%==============================================================================
+%% Private functions
+%%==============================================================================
+floating_point_value_from_ack(Ack) ->
+    {ok, Apdu} = bacnet_utils:get_apdu_from_message(Ack),
+    Size = byte_size(Apdu) - 6,
+    <<_Ignore:Size/binary, _Header:8, V:32/float, _:8>> = Apdu,
+    V.
     
