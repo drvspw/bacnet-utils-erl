@@ -34,7 +34,8 @@
 
 
 -export([
-	 write_property_request_test/1, 
+	 write_octetstring_request_test/1,
+	 write_msv_request_test/1,
 
 	 read_octetstring_request_test/1,
 	 read_analog_output_request_test/1,
@@ -45,8 +46,9 @@
 	 get_apdu_from_message_test/1,
 	 get_pdu_type_simple_ack_test/1,
 	 get_pdu_type_complex_ack_test/1,
-	 get_value_from_complex_ack_test/1,
 
+	 get_value_from_complex_ack_test/1,
+	 get_uint_from_complex_ack_test/1,
 	 get_analog_value_from_complex_ack_test/1
 	]).
 
@@ -63,10 +65,12 @@ groups() ->
     [
      {?BACNET_TEST_GROUP, 
       [parallel], 
-      [read_octetstring_request_test, write_property_request_test, read_analog_output_request_test,
+      [write_octetstring_request_test, write_msv_request_test, 
+       read_octetstring_request_test, read_analog_output_request_test,
        read_analog_value_pv_test, read_analog_input_oos_test, read_msv_pv_test,
        get_apdu_from_message_test, get_pdu_type_simple_ack_test,
-       get_pdu_type_complex_ack_test, get_value_from_complex_ack_test, get_analog_value_from_complex_ack_test
+       get_pdu_type_complex_ack_test, get_value_from_complex_ack_test, get_analog_value_from_complex_ack_test,
+       get_uint_from_complex_ack_test
       ]
      }
     ].
@@ -88,10 +92,16 @@ end_per_group(?BACNET_TEST_GROUP, _Config) ->
 %%===============================================
 %% Test Functions
 %%===============================================
-write_property_request_test(_Config) ->
-    Id = 1, Tag = 2,
+write_octetstring_request_test(_Config) ->
+    Id = 1, Tag = 2, Ins = 0,
     Wp = <<129,10,0,39,1,4,0,5,0,15,12,11,192,0,0,25,85,62,101,16,1,0,0,0,0,0,0,0,2,0,0,0,0,0,0,0,63,73,1>>,
-    {ok, Wp} = bacnet_utils:build_write_property_request(Id, Tag),
+    {ok, Wp} = bacnet_utils:build_write_octetstring_req(Ins, Id, Tag),
+    ?PASS('write_property_test').
+
+write_msv_request_test(_Config) ->
+    Ins = 2, Value = 1,
+    Wp = <<129,10,0,23,1,4,0,5,0,15,12,4,192,0,2,25,85,62,33,1,63,73,1>>,
+    {ok, Wp} = bacnet_utils:build_write_msv_req(Ins, Value),
     ?PASS('write_property_test').
 
 read_octetstring_request_test(_Config) ->
@@ -107,8 +117,8 @@ read_analog_value_pv_test(_Config) ->
     ?PASS(read_analog_property_request_test).
 
 read_msv_pv_test(_Config) ->
-    ObjIns = 7,
-    Rp = <<129,10,0,17,1,4,0,5,0,12,12,4,192,0,7,25,85>>,
+    ObjIns = 2,
+    Rp = <<129,10,0,17,1,4,0,5,0,12,12,4,192,0,2,25,85>>,
     {ok, Rp} = bacnet_utils:build_read_msv_pv_req(ObjIns),
     ?PASS(read_analog_property_request_test).
 
@@ -151,15 +161,28 @@ get_value_from_complex_ack_test(Config) ->
     {ok, ComplexApdu} = bacnet_utils:get_apdu_from_message(ComplexAckMsg),
     {ok, 10, 99} = bacnet_utils:get_value_from_complex_ack(ComplexApdu).
 
+get_uint_from_complex_ack_test(_Config) ->
+    ComplexAckMsg1 = <<129,10,0,20,1,0,48,0,12,12,4,192,0,2,25,85,62,33,1,63>>,
+    {ok, ComplexApdu1} = bacnet_utils:get_apdu_from_message(ComplexAckMsg1),
+    {ok, 1} = bacnet_utils:get_uint_from_complex_ack(ComplexApdu1),
+    
+    ComplexAckMsg2 = <<129,10,0,20,1,0,48,0,12,12,4,192,0,2,25,85,62,33,5,63>>,
+    {ok, ComplexApdu2} = bacnet_utils:get_apdu_from_message(ComplexAckMsg2),
+    {ok, 5} = bacnet_utils:get_uint_from_complex_ack(ComplexApdu2).
+
 get_analog_value_from_complex_ack_test(_Config) ->
     %% Analog property value is 0.000000
-    {ok, 0.0} = bacnet_utils:get_float_from_complex_ack(<<129,10,0,23,1,0,48,1,12,12,0,64,0,1,25,85,62,68,0,0,0,0,63>>),
+    {ok, Apdu1} = bacnet_utils:get_apdu_from_message(<<129,10,0,23,1,0,48,1,12,12,0,64,0,1,25,85,62,68,0,0,0,0,63>>),
+    {ok, 0.0} = bacnet_utils:get_float_from_complex_ack(Apdu1),
+    
     
     %% Analog Property values is 100.000000
-    {ok, 100.00} = bacnet_utils:get_float_from_complex_ack(<<129,10,0,23,1,0,48,1,12,12,0,64,0,1,25,85,62,68,66,200,0,0,63>>),
+    {ok, Apdu2} = bacnet_utils:get_apdu_from_message(<<129,10,0,23,1,0,48,1,12,12,0,64,0,1,25,85,62,68,66,200,0,0,63>>),
+    {ok, 100.00} = bacnet_utils:get_float_from_complex_ack(Apdu2),
     
     %% Analog Property value is 34.000000
-    {ok, 34.0} = bacnet_utils:get_float_from_complex_ack(<<129,10,0,23,1,0,48,1,12,12,0,64,0,1,25,85,62,68,66,8,0,0,63>>).
+    {ok, Apdu3} = bacnet_utils:get_apdu_from_message(<<129,10,0,23,1,0,48,1,12,12,0,64,0,1,25,85,62,68,66,8,0,0,63>>),
+    {ok, 34.0} = bacnet_utils:get_float_from_complex_ack(Apdu3).
 
 
     

@@ -21,7 +21,9 @@
 
 %% API exports
 -export([
-	 build_write_property_request/2,
+	 build_write_msv_req/2,
+
+	 build_write_octetstring_req/3,
 
 
 	 build_read_octetstring_pv_req/1,
@@ -34,6 +36,7 @@
 	 get_pdu_type/1,
 
 	 get_value_from_complex_ack/1,
+	 get_uint_from_complex_ack/1,
 	 get_float_from_complex_ack/1
 ]).
 
@@ -46,18 +49,32 @@
 %% API functions - NIFS
 %%====================================================================
 
-%% @doc build_write_property_request/2 builds a bacnet write property request
+%% @doc build_write_msv_req/2 builds a bacnet write property request
 %%
 %% Generates a write property request where the property value is a concatenation
 %% of  `Id' and `Tag'.
 %% @end
--spec build_write_property_request(Id, Tag) -> WritePropertyRequest
+-spec build_write_msv_req(Instance, Value) -> WritePropertyRequest
     when
+      Instance :: integer(),
+      Value :: integer(),
+      WritePropertyRequest :: binary().
+build_write_msv_req(Id, Tag) ->
+    build_write_msv_req_nif(Id, Tag).
+
+%% @doc build_write_octetstring_req/3 builds a bacnet write property request
+%%
+%% Generates a write property request where the property value is a concatenation
+%% of  `Id' and `Tag'. `Instance' is the bacnet object instance
+%% @end
+-spec build_write_octetstring_req(Instance, Id, Tag) -> WritePropertyRequest
+    when
+      Instance :: integer(),
       Id :: integer(),
       Tag :: integer(),
       WritePropertyRequest :: binary().
-build_write_property_request(Id, Tag) ->
-    build_write_property_request_nif(Id, Tag).
+build_write_octetstring_req(Instance, Id, Tag) ->
+    build_write_octetstring_req_nif(Instance, Id, Tag).
 
 %% @doc build_read_octetstring_pv_req/1 builds a bacnet read property request
 %%
@@ -87,15 +104,19 @@ get_pdu_type(Apdu) ->
 get_value_from_complex_ack(Apdu) ->
     get_value_from_complex_ack_nif(Apdu).
 
+get_uint_from_complex_ack(Apdu) ->
+    get_uint_from_complex_ack_nif(Apdu).
+
 get_float_from_complex_ack(Apdu) ->
-    Size = byte_size(Apdu) - 6,
-    <<_Ignore:Size/binary, _Header:8, V:32/float, _:8>> = Apdu,
-    {ok, V}.
+    get_float_from_complex_ack_nif(Apdu).
 
 %%====================================================================
 %% NIFS
 %%====================================================================
-build_write_property_request_nif(_,_) ->
+build_write_msv_req_nif(_,_) ->
+    not_loaded(?LINE).
+
+build_write_octetstring_req_nif(_,_,_) ->
     not_loaded(?LINE).
 
 get_apdu_from_message_nif(_) ->
@@ -105,6 +126,12 @@ get_pdu_type_nif(_) ->
     not_loaded(?LINE).
 
 get_value_from_complex_ack_nif(_) ->
+    not_loaded(?LINE).
+
+get_uint_from_complex_ack_nif(_) ->
+    not_loaded(?LINE).
+
+get_float_from_complex_ack_nif(_) ->
     not_loaded(?LINE).
 
 build_read_octetstring_pv_req_nif(_) ->
@@ -141,3 +168,8 @@ init() ->
 
 not_loaded(Line) ->
     exit({not_loaded, [{module, ?MODULE}, {line, Line}]}).
+
+apdu_float(Apdu) ->
+    Size = byte_size(Apdu) - 6,
+    <<_Ignore:Size/binary, _Header:8, V:32/float, _:8>> = Apdu,
+    {ok, V}.

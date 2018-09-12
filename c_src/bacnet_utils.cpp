@@ -24,16 +24,11 @@ namespace {
   uint8_t decode_bvll(uint8_t* bvll_in, uint8_t** npdu);
 
   uint16_t decode_npdu(uint8_t* npdu_in, uint16_t npdu_len, uint8_t** apdu);
-
-  BACNET_OBJECT_TYPE object_type_k = OBJECT_OCTETSTRING_VALUE;
-  uint32_t object_instance_k = 0;
-  BACNET_PROPERTY_ID object_property_k = PROP_PRESENT_VALUE;
-  uint32_t array_index_k = -1;  /* No array, just a scalar value */
-  uint8_t priority_k = 1;   /* Make the write high priority */
 }   // anonymous namespace
 
 uint8_t build_write_property_request(uint8_t* buffer,
                                      uint8_t* tmp_buffer,
+				     BACNET_OBJECT_TYPE object_type, uint32_t object_instance, BACNET_PROPERTY_ID object_property, uint32_t array_index,
                                      BACNET_APPLICATION_DATA_VALUE * object_value)
 {
   uint8_t invoke_id = 0;
@@ -41,6 +36,8 @@ uint8_t build_write_property_request(uint8_t* buffer,
   int pdu_len = 0;
   BACNET_WRITE_PROPERTY_DATA data;
   BACNET_NPDU_DATA npdu_data;
+
+  uint8_t priority = 1;   /* Make the write high priority */
 
   uint8_t application_data[MAX_APDU] = { 0 };
   int apdu_len = 0, first_len = 0;
@@ -62,14 +59,14 @@ uint8_t build_write_property_request(uint8_t* buffer,
     npdu_encode_pdu(&tmp_buffer[0], nullptr, nullptr,
 		    &npdu_data);
   /* encode the APDU portion of the packet */
-  data.object_type = object_type_k;
-  data.object_instance = object_instance_k;
-  data.object_property = object_property_k;
-  data.array_index = array_index_k;
+  data.object_type = object_type;
+  data.object_instance = object_instance;
+  data.object_property = object_property;
+  data.array_index = array_index;
   data.application_data_len = apdu_len;
   memcpy(&data.application_data[0], &application_data[0],
 	 apdu_len);
-  data.priority = priority_k;
+  data.priority = priority;
   second_len =
     wp_encode_apdu(&tmp_buffer[pdu_len], invoke_id,
 		   &data);
@@ -152,22 +149,26 @@ bool get_value_from_complex_ack(uint8_t* apdu, uint16_t apdu_len, BACNET_APPLICA
   return true;
 }
 
-uint8_t* prepare_bacnet_octet_string_payload(BACNET_APPLICATION_DATA_VALUE& out, std::size_t size)
-{
+void build_bacnet_payload(BACNET_APPLICATION_DATA_VALUE& out, uint64_t test_id, uint64_t next_tag_) {
+  // prepace octet string payload
   out.context_specific = false;
   out.tag = BACNET_APPLICATION_TAG_OCTET_STRING;
   out.next = NULL;
-  out.type.Octet_String.length = size;
+  out.type.Octet_String.length = sizeof(test_id) + sizeof(next_tag_);;
+  uint8_t* payload = out.type.Octet_String.value;
 
-  return out.type.Octet_String.value;
+  // copy value to payload
+  std::memcpy(payload, &test_id, sizeof(test_id));
+  std::memcpy(payload + sizeof(test_id), &next_tag_, sizeof(next_tag_));
 }
 
-  void build_bacnet_payload(BACNET_APPLICATION_DATA_VALUE& out, uint64_t test_id, uint64_t next_tag_)
-  {
-    uint8_t* payload = prepare_bacnet_octet_string_payload(out, sizeof(test_id) + sizeof(next_tag_));
-    std::memcpy(payload, &test_id, sizeof(test_id));
-    std::memcpy(payload + sizeof(test_id), &next_tag_, sizeof(next_tag_));
-  }
+void build_bacnet_payload(BACNET_APPLICATION_DATA_VALUE& out, uint32_t value) {
+    // prepace integer payload
+  out.context_specific = false;
+  out.tag = BACNET_APPLICATION_TAG_UNSIGNED_INT;
+  out.next = NULL;
+  out.type.Unsigned_Int = value;
+}
 
 namespace {
   uint8_t build_bvll(uint8_t* buffer, uint8_t * pdu, unsigned pdu_len)
