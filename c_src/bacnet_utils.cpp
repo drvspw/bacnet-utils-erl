@@ -53,10 +53,18 @@ uint8_t build_write_property_request(uint8_t* buffer,
     object_value = object_value->next;
   }
 
+  /* Create dest bacnet address */
+  BACNET_ADDRESS dest;
+  dest.mac_len = 1;
+  dest.mac[0] = 123;
+  dest.net = 4;
+  dest.len = 1;
+  dest.adr[0] = 123;
+
   /* encode the NPDU portion of the packet */
   npdu_encode_npdu_data(&npdu_data, true, MESSAGE_PRIORITY_NORMAL);
   pdu_len =
-    npdu_encode_pdu(&tmp_buffer[0], nullptr, nullptr,
+    npdu_encode_pdu(&tmp_buffer[0], &dest, nullptr,
 		    &npdu_data);
   /* encode the APDU portion of the packet */
   data.object_type = object_type;
@@ -83,10 +91,20 @@ uint8_t build_read_property_request(uint8_t* buffer, uint8_t* tmp_buffer, BACNET
   BACNET_READ_PROPERTY_DATA data;
   BACNET_NPDU_DATA npdu_data;
 
+  
+  /* Create dest bacnet address */
+  BACNET_ADDRESS dest;
+  dest.mac_len = 1;
+  dest.mac[0] = 123;
+  dest.net = 4;
+  dest.len = 1;
+  dest.adr[0] = 123;
+
+
   /* encode the NPDU portion of the packet */
   npdu_encode_npdu_data(&npdu_data, true, MESSAGE_PRIORITY_NORMAL);
   pdu_len =
-    npdu_encode_pdu(&tmp_buffer[0], nullptr, nullptr,
+    npdu_encode_pdu(&tmp_buffer[0], &dest, nullptr,
 		    &npdu_data);
   /* encode the APDU portion of the packet */
   data.object_type = object_type;
