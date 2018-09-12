@@ -40,6 +40,7 @@
 	 read_analog_output_request_test/1,
 	 read_analog_value_pv_test/1, 
 	 read_analog_input_oos_test/1,
+	 read_msv_pv_test/1,
 
 	 get_apdu_from_message_test/1,
 	 get_pdu_type_simple_ack_test/1,
@@ -63,7 +64,7 @@ groups() ->
      {?BACNET_TEST_GROUP, 
       [parallel], 
       [read_octetstring_request_test, write_property_request_test, read_analog_output_request_test,
-       read_analog_value_pv_test, read_analog_input_oos_test,
+       read_analog_value_pv_test, read_analog_input_oos_test, read_msv_pv_test,
        get_apdu_from_message_test, get_pdu_type_simple_ack_test,
        get_pdu_type_complex_ack_test, get_value_from_complex_ack_test, get_analog_value_from_complex_ack_test
       ]
@@ -95,7 +96,7 @@ write_property_request_test(_Config) ->
 
 read_octetstring_request_test(_Config) ->
     ObjIns = 0,
-    Rp = <<129,10,0,17,1,4,0,5,0,12,12,11,192,0,0,25,85>>,
+    Rp = <<129,10,0,17,1,4,0,5,0,12,12,11,192,0,0,25,85>>,         
     {ok, Rp} = bacnet_utils:build_read_octetstring_pv_req(ObjIns),
     ?PASS(read_property_test).
 
@@ -103,6 +104,12 @@ read_analog_value_pv_test(_Config) ->
     ObjIns = 7,
     Rp = <<129,10,0,17,1,4,0,5,0,12,12,0,128,0,7,25,85>>,
     {ok, Rp} = bacnet_utils:build_read_analog_value_pv_req(ObjIns),
+    ?PASS(read_analog_property_request_test).
+
+read_msv_pv_test(_Config) ->
+    ObjIns = 7,
+    Rp = <<129,10,0,17,1,4,0,5,0,12,12,4,192,0,7,25,85>>,
+    {ok, Rp} = bacnet_utils:build_read_msv_pv_req(ObjIns),
     ?PASS(read_analog_property_request_test).
 
 read_analog_input_oos_test(_Config) ->

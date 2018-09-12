@@ -28,6 +28,7 @@
 	 build_read_analog_value_pv_req/1,
 	 build_read_analog_input_oos_req/1,
 	 build_read_analog_output_pv_req/1,
+	 build_read_msv_pv_req/1,
 
 	 get_apdu_from_message/1,
 	 get_pdu_type/1,
@@ -74,6 +75,9 @@ build_read_analog_input_oos_req(Ins) ->
 build_read_analog_output_pv_req(Ins) ->
     build_read_analog_output_pv_req_nif(Ins).
 
+build_read_msv_pv_req(Ins) ->
+    build_read_msv_pv_req_nif(Ins).
+
 get_apdu_from_message(Msg) ->
     get_apdu_from_message_nif(Msg).
 
@@ -113,6 +117,9 @@ build_read_analog_input_oos_req_nif(_) ->
     not_loaded(?LINE).
 
 build_read_analog_output_pv_req_nif(_) ->
+    not_loaded(?LINE).
+
+build_read_msv_pv_req_nif(_) ->
     not_loaded(?LINE).
 
 %%====================================================================
