@@ -10,7 +10,8 @@ uint8_t build_write_property_request(uint8_t* buffer,
                                      uint8_t* tmp_buffer,
                                      BACNET_APPLICATION_DATA_VALUE * object_value);
 
-uint8_t build_read_property_request(uint8_t* buffer, uint8_t* tmp_buffer);
+uint8_t build_read_property_request(uint8_t* buffer, uint8_t* tmp_buffer, BACNET_OBJECT_TYPE object_type,
+				    uint32_t object_instance, BACNET_PROPERTY_ID object_property, uint32_t array_index);
 
 bool get_apdu_from_message(uint8_t* message, uint8_t** apdu_out, uint16_t* apdu_len);
 

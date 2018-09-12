@@ -64,17 +64,136 @@ build_write_property_request_nif(ErlNifEnv* env, int argc, const ERL_NIF_TERM ar
 }
 
 static ERL_NIF_TERM
-build_read_property_request_nif(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]) {
-  if(argc != 0) {
+build_read_octetstring_pv_req_nif(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]) {
+  uint32_t object_instance = 0;
+  uint32_t array_index = -1;
+  
+  if(argc != 1 ||
+     !enif_get_uint(env, argv[0], &object_instance)
+     ) {
     return enif_make_badarg(env);
   }
 
   uint8_t buffer[BUFFER_SIZE];
   uint8_t tmp_buffer[BUFFER_SIZE];
 
-  uint8_t rp_len = build_read_property_request(buffer, tmp_buffer);
+  BACNET_OBJECT_TYPE object_type = OBJECT_OCTETSTRING_VALUE;
+  BACNET_PROPERTY_ID object_property = PROP_PRESENT_VALUE;
+
+  uint8_t rp_len = build_read_property_request(buffer, tmp_buffer, object_type, object_instance, object_property, array_index);
   if( !rp_len ) {
-    return mk_error(env, "read_property_request_error");
+    return mk_error(env, "read_octet_request_error");
+  }
+
+  ErlNifBinary rp;
+  if (!enif_alloc_binary(rp_len, &rp)) {
+    return mk_error(env, "alloc_failed");
+  }
+
+  // Copy data to the ErlNifBinary
+  std::memcpy(rp.data, buffer, rp_len);
+
+  // return tuple
+  ERL_NIF_TERM ok = mk_atom(env, OK);
+  ERL_NIF_TERM rpBin = enif_make_binary(env, &rp);
+
+  return enif_make_tuple2(env, ok, rpBin);
+}
+
+static ERL_NIF_TERM
+build_read_analog_value_pv_req_nif(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]) {
+  uint32_t object_instance = 0;
+  uint32_t array_index = -1;
+  
+  if(argc != 1 ||
+     !enif_get_uint(env, argv[0], &object_instance)
+     ) {
+    return enif_make_badarg(env);
+  }
+
+  uint8_t buffer[BUFFER_SIZE];
+  uint8_t tmp_buffer[BUFFER_SIZE];
+
+  BACNET_OBJECT_TYPE object_type = OBJECT_ANALOG_VALUE;
+  BACNET_PROPERTY_ID object_property = PROP_PRESENT_VALUE;
+
+  uint8_t rp_len = build_read_property_request(buffer, tmp_buffer, object_type, object_instance, object_property, array_index);
+  if( !rp_len ) {
+    return mk_error(env, "read_analog_value_request_error");
+  }
+
+  ErlNifBinary rp;
+  if (!enif_alloc_binary(rp_len, &rp)) {
+    return mk_error(env, "alloc_failed");
+  }
+
+  // Copy data to the ErlNifBinary
+  std::memcpy(rp.data, buffer, rp_len);
+
+  // return tuple
+  ERL_NIF_TERM ok = mk_atom(env, OK);
+  ERL_NIF_TERM rpBin = enif_make_binary(env, &rp);
+
+  return enif_make_tuple2(env, ok, rpBin);
+}
+
+static ERL_NIF_TERM
+build_read_analog_input_oos_req_nif(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]) {
+  uint32_t object_instance = 0;
+  uint32_t array_index = -1;
+  
+  if(argc != 1 ||
+     !enif_get_uint(env, argv[0], &object_instance)
+     ) {
+    return enif_make_badarg(env);
+  }
+
+  uint8_t buffer[BUFFER_SIZE];
+  uint8_t tmp_buffer[BUFFER_SIZE];
+
+  BACNET_OBJECT_TYPE object_type = OBJECT_ANALOG_INPUT;
+  BACNET_PROPERTY_ID object_property = PROP_OUT_OF_SERVICE;
+
+  uint8_t rp_len = build_read_property_request(buffer, tmp_buffer, object_type, object_instance, object_property, array_index);
+  if( !rp_len ) {
+    return mk_error(env, "read_analog_input_request_error");
+  }
+
+  ErlNifBinary rp;
+  if (!enif_alloc_binary(rp_len, &rp)) {
+    return mk_error(env, "alloc_failed");
+  }
+
+  // Copy data to the ErlNifBinary
+  std::memcpy(rp.data, buffer, rp_len);
+
+  // return tuple
+  ERL_NIF_TERM ok = mk_atom(env, OK);
+  ERL_NIF_TERM rpBin = enif_make_binary(env, &rp);
+
+  return enif_make_tuple2(env, ok, rpBin);
+}
+
+static ERL_NIF_TERM
+build_read_analog_output_pv_req_nif(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]) {
+  uint32_t object_instance = 0;
+  uint32_t array_index = -1;
+  
+  if(argc != 1 ||
+     !enif_get_uint(env, argv[0], &object_instance)
+     ) {
+    return enif_make_badarg(env);
+  }
+  
+  uint8_t buffer[BUFFER_SIZE];
+  uint8_t tmp_buffer[BUFFER_SIZE];
+
+  BACNET_OBJECT_TYPE object_type = OBJECT_ANALOG_OUTPUT;
+  BACNET_PROPERTY_ID object_property = PROP_PRESENT_VALUE;
+
+  uint8_t rp_len = build_read_property_request(buffer, tmp_buffer, object_type, object_instance, object_property, array_index);
+  if( !rp_len ) {
+    return mk_error(env, "read_analog_output_request_error");
   }
 
   ErlNifBinary rp;
@@ -201,10 +320,15 @@ get_value_from_complex_ack_nif(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv
 
 static ErlNifFunc nif_funcs[] = {
   {"build_write_property_request_nif", 2, build_write_property_request_nif},
-  {"build_read_property_request_nif", 0, build_read_property_request_nif},
+  
+  {"build_read_octetstring_pv_req_nif", 1, build_read_octetstring_pv_req_nif},
+  {"build_read_analog_value_pv_req_nif", 1, build_read_analog_value_pv_req_nif},
+  {"build_read_analog_input_oos_req_nif", 1, build_read_analog_input_oos_req_nif},
+  {"build_read_analog_output_pv_req_nif", 1, build_read_analog_output_pv_req_nif},
+
   {"get_apdu_from_message_nif",1,get_apdu_from_message_nif},
   {"get_pdu_type_nif", 1, get_pdu_type_nif},
-  {"get_value_from_complex_ack_nif", 1, get_value_from_complex_ack_nif}
+  {"get_value_from_complex_ack_nif", 1, get_value_from_complex_ack_nif},
 };
 
 ERL_NIF_INIT(bacnet_utils, nif_funcs, NULL, NULL, NULL, NULL);

@@ -22,12 +22,18 @@
 %% API exports
 -export([
 	 build_write_property_request/2,
-	 build_read_property_request/0,
+
+
+	 build_read_octetstring_pv_req/1,
+	 build_read_analog_value_pv_req/1,
+	 build_read_analog_input_oos_req/1,
+	 build_read_analog_output_pv_req/1,
 
 	 get_apdu_from_message/1,
 	 get_pdu_type/1,
 
-	 get_value_from_complex_ack/1
+	 get_value_from_complex_ack/1,
+	 get_float_from_complex_ack/1
 ]).
 
 -on_load(init/0).
@@ -52,17 +58,21 @@
 build_write_property_request(Id, Tag) ->
     build_write_property_request_nif(Id, Tag).
 
-%% @doc build_read_property_request/0 builds a bacnet read property request
+%% @doc build_read_octetstring_pv_req/1 builds a bacnet read property request
 %%
-%% Generates a read property request where the property value read is a 
-%% concatenation of  `Id' and `Tag'.
+%% Generates a read property request where the property that is read in `Ins'
 %% @end
--spec build_read_property_request() -> ReadPropertyRequest
-    when
-      ReadPropertyRequest :: binary().
-build_read_property_request() ->
-    build_read_property_request_nif().
+build_read_octetstring_pv_req(Instance) ->
+    build_read_octetstring_pv_req_nif(Instance).
 
+build_read_analog_value_pv_req(Ins) ->
+    build_read_analog_value_pv_req_nif(Ins).
+
+build_read_analog_input_oos_req(Ins) ->
+    build_read_analog_input_oos_req_nif(Ins).
+
+build_read_analog_output_pv_req(Ins) ->
+    build_read_analog_output_pv_req_nif(Ins).
 
 get_apdu_from_message(Msg) ->
     get_apdu_from_message_nif(Msg).
@@ -72,16 +82,16 @@ get_pdu_type(Apdu) ->
 
 get_value_from_complex_ack(Apdu) ->
     get_value_from_complex_ack_nif(Apdu).
-    
 
+get_float_from_complex_ack(Apdu) ->
+    Size = byte_size(Apdu) - 6,
+    <<_Ignore:Size/binary, _Header:8, V:32/float, _:8>> = Apdu,
+    {ok, V}.
 
 %%====================================================================
 %% NIFS
 %%====================================================================
 build_write_property_request_nif(_,_) ->
-    not_loaded(?LINE).
-
-build_read_property_request_nif() ->
     not_loaded(?LINE).
 
 get_apdu_from_message_nif(_) ->
@@ -91,6 +101,18 @@ get_pdu_type_nif(_) ->
     not_loaded(?LINE).
 
 get_value_from_complex_ack_nif(_) ->
+    not_loaded(?LINE).
+
+build_read_octetstring_pv_req_nif(_) ->
+    not_loaded(?LINE).
+
+build_read_analog_value_pv_req_nif(_) ->
+    not_loaded(?LINE).
+
+build_read_analog_input_oos_req_nif(_) ->
+    not_loaded(?LINE).
+
+build_read_analog_output_pv_req_nif(_) ->
     not_loaded(?LINE).
 
 %%====================================================================

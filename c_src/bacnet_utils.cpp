@@ -79,32 +79,6 @@ uint8_t build_write_property_request(uint8_t* buffer,
 		    &tmp_buffer[0], pdu_len);
 }
 
-uint8_t build_read_property_request(uint8_t* buffer, uint8_t* tmp_buffer)
-{
-  uint8_t invoke_id = 0;
-  int len = 0;
-  int pdu_len = 0;
-  BACNET_READ_PROPERTY_DATA data;
-  BACNET_NPDU_DATA npdu_data;
-
-  /* encode the NPDU portion of the packet */
-  npdu_encode_npdu_data(&npdu_data, true, MESSAGE_PRIORITY_NORMAL);
-  pdu_len =
-    npdu_encode_pdu(&tmp_buffer[0], nullptr, nullptr,
-		    &npdu_data);
-  /* encode the APDU portion of the packet */
-  data.object_type = object_type_k;
-  data.object_instance = object_instance_k;
-  data.object_property = object_property_k;
-  data.array_index = array_index_k;
-  len =
-    rp_encode_apdu(&tmp_buffer[pdu_len], invoke_id,
-		   &data);
-  pdu_len += len;
-
-  return build_bvll(buffer, &tmp_buffer[0], pdu_len);
-}
-
 uint8_t build_read_property_request(uint8_t* buffer, uint8_t* tmp_buffer, BACNET_OBJECT_TYPE object_type, uint32_t object_instance, BACNET_PROPERTY_ID object_property, uint32_t array_index) {
   uint8_t invoke_id = 0;
   int len = 0;

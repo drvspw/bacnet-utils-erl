@@ -35,9 +35,11 @@
 
 -export([
 	 write_property_request_test/1, 
-	 read_property_request_test/1,
 
-	 read_analog_property_request_test/1,
+	 read_octetstring_request_test/1,
+	 read_analog_output_request_test/1,
+	 read_analog_value_pv_test/1, 
+	 read_analog_input_oos_test/1,
 
 	 get_apdu_from_message_test/1,
 	 get_pdu_type_simple_ack_test/1,
@@ -60,7 +62,8 @@ groups() ->
     [
      {?BACNET_TEST_GROUP, 
       [parallel], 
-      [read_property_request_test, write_property_request_test, read_analog_property_request_test,
+      [read_octetstring_request_test, write_property_request_test, read_analog_output_request_test,
+       read_analog_value_pv_test, read_analog_input_oos_test,
        get_apdu_from_message_test, get_pdu_type_simple_ack_test,
        get_pdu_type_complex_ack_test, get_value_from_complex_ack_test, get_analog_value_from_complex_ack_test
       ]
@@ -90,16 +93,30 @@ write_property_request_test(_Config) ->
     {ok, Wp} = bacnet_utils:build_write_property_request(Id, Tag),
     ?PASS('write_property_test').
 
-read_property_request_test(_Config) ->
+read_octetstring_request_test(_Config) ->
+    ObjIns = 0,
     Rp = <<129,10,0,17,1,4,0,5,0,12,12,11,192,0,0,25,85>>,
-    {ok, Rp} = bacnet_utils:build_read_property_request(),
+    {ok, Rp} = bacnet_utils:build_read_octetstring_pv_req(ObjIns),
     ?PASS(read_property_test).
 
-read_analog_property_request_test(_Config) ->
-    _Rp = <<129, 10, 0, 17, 1, 4,0,5,1,12,12,0,64,0,1,25,85>>,
-    
-    %% TODO: Implement analog property request
-    %%{ok, Rp} = bacnet_utils:build_read_analog_property_request(),
+read_analog_value_pv_test(_Config) ->
+    ObjIns = 7,
+    Rp = <<129,10,0,17,1,4,0,5,0,12,12,0,128,0,7,25,85>>,
+    {ok, Rp} = bacnet_utils:build_read_analog_value_pv_req(ObjIns),
+    ?PASS(read_analog_property_request_test).
+
+read_analog_input_oos_test(_Config) ->
+    ObjIns = 1,
+    Rp = <<129,10,0,17,1,4,0,5,0,12,12,0,0,0,1,25,81>>,
+    {ok, Rp} = bacnet_utils:build_read_analog_input_oos_req(ObjIns),
+    ?PASS(read_analog_property_request_test).
+
+read_analog_output_request_test(_Config) ->
+    %%TODO: <<129,10,0,17,1,4,0,5,1,12,12,0,64,0,1,25,85>> - From wireshark,
+    %%TODO: but <<129,10,0,17,1,4,0,5,0,12,12,0,64,0,1,25,85>> - From api. investigae,
+    ObjIns = 1,
+    Rp = <<129,10,0,17,1,4,0,5,0,12,12,0,64,0,1,25,85>>,    
+    {ok, Rp} = bacnet_utils:build_read_analog_output_pv_req(ObjIns),
     ?PASS(read_analog_property_request_test).
 
 get_apdu_from_message_test(Config) ->
@@ -129,21 +146,13 @@ get_value_from_complex_ack_test(Config) ->
 
 get_analog_value_from_complex_ack_test(_Config) ->
     %% Analog property value is 0.000000
-    0.0 = floating_point_value_from_ack(<<129,10,0,23,1,0,48,1,12,12,0,64,0,1,25,85,62,68,0,0,0,0,63>>),
+    {ok, 0.0} = bacnet_utils:get_float_from_complex_ack(<<129,10,0,23,1,0,48,1,12,12,0,64,0,1,25,85,62,68,0,0,0,0,63>>),
     
     %% Analog Property values is 100.000000
-    100.00 = floating_point_value_from_ack(<<129,10,0,23,1,0,48,1,12,12,0,64,0,1,25,85,62,68,66,200,0,0,63>>),
+    {ok, 100.00} = bacnet_utils:get_float_from_complex_ack(<<129,10,0,23,1,0,48,1,12,12,0,64,0,1,25,85,62,68,66,200,0,0,63>>),
     
     %% Analog Property value is 34.000000
-    34.0 = floating_point_value_from_ack(<<129,10,0,23,1,0,48,1,12,12,0,64,0,1,25,85,62,68,66,8,0,0,63>>).
+    {ok, 34.0} = bacnet_utils:get_float_from_complex_ack(<<129,10,0,23,1,0,48,1,12,12,0,64,0,1,25,85,62,68,66,8,0,0,63>>).
 
 
-%%==============================================================================
-%% Private functions
-%%==============================================================================
-floating_point_value_from_ack(Ack) ->
-    {ok, Apdu} = bacnet_utils:get_apdu_from_message(Ack),
-    Size = byte_size(Apdu) - 6,
-    <<_Ignore:Size/binary, _Header:8, V:32/float, _:8>> = Apdu,
-    V.
     
