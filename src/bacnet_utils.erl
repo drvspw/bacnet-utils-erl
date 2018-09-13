@@ -29,6 +29,7 @@
 	 build_read_octetstring_pv_req/1,
 	 build_read_analog_value_pv_req/1,
 	 build_read_analog_input_oos_req/1,
+	 build_read_analog_input_pv_req/1,
 	 build_read_analog_output_pv_req/1,
 	 build_read_msv_pv_req/1,
 
@@ -89,6 +90,9 @@ build_read_analog_value_pv_req(Ins) ->
 build_read_analog_input_oos_req(Ins) ->
     build_read_analog_input_oos_req_nif(Ins).
 
+build_read_analog_input_pv_req(Ins) ->
+    build_read_analog_input_pv_req_nif(Ins).
+
 build_read_analog_output_pv_req(Ins) ->
     build_read_analog_output_pv_req_nif(Ins).
 
@@ -141,6 +145,9 @@ build_read_analog_value_pv_req_nif(_) ->
     not_loaded(?LINE).
 
 build_read_analog_input_oos_req_nif(_) ->
+    not_loaded(?LINE).
+
+build_read_analog_input_pv_req_nif(_) ->
     not_loaded(?LINE).
 
 build_read_analog_output_pv_req_nif(_) ->

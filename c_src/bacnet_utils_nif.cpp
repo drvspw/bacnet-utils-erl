@@ -225,6 +225,43 @@ build_read_analog_input_oos_req_nif(ErlNifEnv* env, int argc, const ERL_NIF_TERM
 }
 
 static ERL_NIF_TERM
+build_read_analog_input_pv_req_nif(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]) {
+  uint32_t object_instance = 0;
+  uint32_t array_index = -1;
+  
+  if(argc != 1 ||
+     !enif_get_uint(env, argv[0], &object_instance)
+     ) {
+    return enif_make_badarg(env);
+  }
+
+  uint8_t buffer[BUFFER_SIZE];
+  uint8_t tmp_buffer[BUFFER_SIZE];
+
+  BACNET_OBJECT_TYPE object_type = OBJECT_ANALOG_INPUT;
+  BACNET_PROPERTY_ID object_property = PROP_PRESENT_VALUE;
+
+  uint8_t rp_len = build_read_property_request(buffer, tmp_buffer, object_type, object_instance, object_property, array_index);
+  if( !rp_len ) {
+    return mk_error(env, "read_analog_input_request_error");
+  }
+
+  ErlNifBinary rp;
+  if (!enif_alloc_binary(rp_len, &rp)) {
+    return mk_error(env, "alloc_failed");
+  }
+
+  // Copy data to the ErlNifBinary
+  std::memcpy(rp.data, buffer, rp_len);
+
+  // return tuple
+  ERL_NIF_TERM ok = mk_atom(env, OK);
+  ERL_NIF_TERM rpBin = enif_make_binary(env, &rp);
+
+  return enif_make_tuple2(env, ok, rpBin);
+}
+
+static ERL_NIF_TERM
 build_read_analog_output_pv_req_nif(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]) {
   uint32_t object_instance = 0;
   uint32_t array_index = -1;
@@ -480,6 +517,7 @@ static ErlNifFunc nif_funcs[] = {
   {"build_read_octetstring_pv_req_nif", 1, build_read_octetstring_pv_req_nif},
   {"build_read_analog_value_pv_req_nif", 1, build_read_analog_value_pv_req_nif},
   {"build_read_analog_input_oos_req_nif", 1, build_read_analog_input_oos_req_nif},
+    {"build_read_analog_input_pv_req_nif", 1, build_read_analog_input_pv_req_nif},
   {"build_read_analog_output_pv_req_nif", 1, build_read_analog_output_pv_req_nif},
   {"build_read_msv_pv_req_nif", 1, build_read_msv_pv_req_nif},
 
